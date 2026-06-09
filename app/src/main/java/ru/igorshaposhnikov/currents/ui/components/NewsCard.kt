@@ -27,9 +27,11 @@ import ru.igorshaposhnikov.currents.data.repository.model.Article
 @Composable
 fun NewsCard(
     article: Article,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(

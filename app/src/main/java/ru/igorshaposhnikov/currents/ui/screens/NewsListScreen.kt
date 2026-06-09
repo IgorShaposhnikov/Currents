@@ -29,6 +29,7 @@ import ru.igorshaposhnikov.currents.ui.viewmodel.UiState
 @Composable
 fun NewsListScreen(
     modifier: Modifier = Modifier,
+    onArticleClick: (String) -> Unit = {},
     viewModel: NewsViewModel = viewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -76,7 +77,10 @@ fun NewsListScreen(
                             items = currentState.articles,
                             key = { it.url },
                         ) { article ->
-                            NewsCard(article = article)
+                            NewsCard(
+                                article = article,
+                                onClick = { onArticleClick(article.url) },
+                            )
                         }
                     }
                 }

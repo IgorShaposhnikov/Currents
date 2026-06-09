@@ -1,17 +1,22 @@
 package ru.igorshaposhnikov.currents.ui.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import ru.igorshaposhnikov.currents.data.local.AppDatabase
 import ru.igorshaposhnikov.currents.data.repository.NewsRepository
 import ru.igorshaposhnikov.currents.data.repository.NewsRepositoryImpl
+import ru.igorshaposhnikov.currents.data.repository.model.Article
 
-class NewsViewModel : ViewModel() {
+class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: NewsRepository = NewsRepositoryImpl()
+    private val repository: NewsRepository = NewsRepositoryImpl(
+        database = AppDatabase.getInstance(application)
+    )
 
     private val _uiState = MutableStateFlow<UiState>(UiState.Loading)
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
@@ -37,6 +42,14 @@ class NewsViewModel : ViewModel() {
             }
         }
     }
+
+    fun toggleBookmark(article: Article) {
+        viewModelScope.launch {
+            repository.toggleBookmark(article)
+        }
+    }
+
+    suspend fun isBookmarked(url: String): Boolean = repository.isBookmarked(url)
 
     private fun fetchNews() {
         viewModelScope.launch {

@@ -10,4 +10,10 @@ interface NewsRepository {
         pageSize: Int = 20,
         page: Int = 1
     ): List<Article>
+
+    suspend fun toggleBookmark(article: Article)
+
+    suspend fun isBookmarked(url: String): Boolean
+
+    suspend fun getAllBookmarks(): List<Article>
 }
