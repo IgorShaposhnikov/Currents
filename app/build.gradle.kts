@@ -1,8 +1,15 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = if (localPropertiesFile.exists()) {
+    Properties().also { it.load(localPropertiesFile.inputStream()) }
+} else null
 
 android {
     namespace = "ru.igorshaposhnikov.currents"
@@ -20,6 +27,8 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "API_KEY", "\"${localProperties?.getProperty("NEWS_API_KEY") ?: ""}\"")
     }
 
     buildTypes {
@@ -35,6 +44,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
