@@ -1,6 +1,7 @@
 package ru.igorshaposhnikov.currents.ui.viewmodel
 
 import android.app.Application
+import java.net.URLDecoder
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
@@ -19,9 +20,9 @@ class DetailViewModel(
 ) : AndroidViewModel(application) {
 
     val articleUrl: String = checkNotNull(savedStateHandle["url"])
-    val title: String = savedStateHandle["title"] ?: ""
-    val sourceName: String = savedStateHandle["source"] ?: ""
-    val description: String = savedStateHandle["desc"] ?: ""
+    val title: String = URLDecoder.decode(savedStateHandle["title"] ?: "", "UTF-8")
+    val sourceName: String = URLDecoder.decode(savedStateHandle["source"] ?: "", "UTF-8")
+    val description: String = URLDecoder.decode(savedStateHandle["desc"] ?: "", "UTF-8")
 
     private val repository: NewsRepository = NewsRepositoryImpl(
         database = AppDatabase.getInstance(application)
