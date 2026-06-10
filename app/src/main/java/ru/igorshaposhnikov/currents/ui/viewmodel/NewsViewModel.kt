@@ -12,6 +12,8 @@ import ru.igorshaposhnikov.currents.data.repository.NewsRepository
 import ru.igorshaposhnikov.currents.data.repository.NewsRepositoryImpl
 import ru.igorshaposhnikov.currents.data.repository.model.Article
 
+enum class NewsTab { ALL, BOOKMARKS }
+
 class NewsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository: NewsRepository = NewsRepositoryImpl(
@@ -24,8 +26,27 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
+    private val _selectedTab = MutableStateFlow(NewsTab.ALL)
+    val selectedTab: StateFlow<NewsTab> = _selectedTab.asStateFlow()
+
+    private var newsCache: List<Article> = emptyList()
+
     init {
         fetchNews()
+    }
+
+    fun selectTab(tab: NewsTab) {
+        _selectedTab.value = tab
+        when (tab) {
+            NewsTab.ALL -> {
+                if (newsCache.isNotEmpty()) {
+                    _uiState.value = UiState.Success(newsCache)
+                } else {
+                    fetchNews()
+                }
+            }
+            NewsTab.BOOKMARKS -> loadBookmarks()
+        }
     }
 
     fun refresh() {
@@ -33,7 +54,12 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                val articles = repository.getTopHeadlines()
+                val articles = when (_selectedTab.value) {
+                    NewsTab.ALL -> {
+                        repository.getTopHeadlines().also { newsCache = it }
+                    }
+                    NewsTab.BOOKMARKS -> repository.getAllBookmarks()
+                }
                 _uiState.value = UiState.Success(articles)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Something went wrong")
@@ -46,16 +72,32 @@ class NewsViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleBookmark(article: Article) {
         viewModelScope.launch {
             repository.toggleBookmark(article)
+            if (_selectedTab.value == NewsTab.BOOKMARKS) {
+                loadBookmarks()
+            }
         }
     }
 
     suspend fun isBookmarked(url: String): Boolean = repository.isBookmarked(url)
+
+    private fun loadBookmarks() {
+        viewModelScope.launch {
+            _uiState.value = UiState.Loading
+            try {
+                val articles = repository.getAllBookmarks()
+                _uiState.value = UiState.Success(articles)
+            } catch (e: Exception) {
+                _uiState.value = UiState.Error(e.message ?: "Something went wrong")
+            }
+        }
+    }
 
     private fun fetchNews() {
         viewModelScope.launch {
             _uiState.value = UiState.Loading
             try {
                 val articles = repository.getTopHeadlines()
+                newsCache = articles
                 _uiState.value = UiState.Success(articles)
             } catch (e: Exception) {
                 _uiState.value = UiState.Error(e.message ?: "Something went wrong")

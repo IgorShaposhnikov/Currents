@@ -32,21 +32,26 @@ class MainActivity : ComponentActivity() {
                     ) {
                         composable("news_list") {
                             NewsListScreen(
-                                onArticleClick = { url ->
-                                    navController.navigate("detail/${java.net.URLEncoder.encode(url, "UTF-8")}")
+                                onArticleClick = { article ->
+                                    navController.navigate(
+                                        "detail/${java.net.URLEncoder.encode(article.url, "UTF-8")}" +
+                                        "?title=${java.net.URLEncoder.encode(article.title, "UTF-8")}" +
+                                        "&source=${java.net.URLEncoder.encode(article.sourceName, "UTF-8")}" +
+                                        "&desc=${java.net.URLEncoder.encode(article.description ?: "", "UTF-8")}"
+                                    )
                                 },
                             )
                         }
                         composable(
-                            route = "detail/{url}",
-                            arguments = listOf(navArgument("url") { type = NavType.StringType }),
-                        ) { backStackEntry ->
-                            val url = java.net.URLDecoder.decode(
-                                backStackEntry.arguments?.getString("url") ?: "",
-                                "UTF-8",
-                            )
+                            route = "detail/{url}?title={title}&source={source}&desc={desc}",
+                            arguments = listOf(
+                                navArgument("url") { type = NavType.StringType },
+                                navArgument("title") { type = NavType.StringType; defaultValue = "" },
+                                navArgument("source") { type = NavType.StringType; defaultValue = "" },
+                                navArgument("desc") { type = NavType.StringType; defaultValue = "" },
+                            ),
+                        ) {
                             DetailScreen(
-                                url = url,
                                 onBack = { navController.popBackStack() },
                             )
                         }
